@@ -90,10 +90,16 @@ def create_task(task: TaskCreate):
     if not task.title or not task.title.strip():
         raise HTTPException(status_code=400, detail="Title is required")
 
-    # Still using the in-memory list for now — Stage 2 will change this
-    next_id = 0  # placeholder, will be replaced in Stage 2
-    new_task = {"id": next_id, "title": task.title, "done": False}
-    return new_task
+    conn = get_connection()
+    cursor = conn.execute(
+        "INSERT INTO tasks (title, done) VALUES (?, ?)",
+        (task.title, 0)
+    )
+    conn.commit()
+    new_id = cursor.lastrowid
+    conn.close()
+
+    return {"id": new_id, "title": task.title, "done": False}
 
 @app.put("/tasks/{task_id}", summary="Update a task", description="Updates a task's title and/or done status. 404 if id doesn't exist.")
 def update_task(task_id: int, update: TaskUpdate):
