@@ -1,10 +1,18 @@
 # Task API
 
-A simple CRUD API for managing a to-do list, built with FastAPI as part of the FlyRank Internship — Backend Track, Week 2.
+A simple CRUD API for managing a to-do list, built with FastAPI as part of the FlyRank Internship — Backend Track.
 
 ## What this is
 
-A small REST API that lets you create, read, update, and delete tasks. Data is stored in memory (no database yet), so it resets whenever the server restarts.
+A small REST API that lets you create, read, update, and delete tasks. Originally built with in-memory storage (Week 2), now backed by a real SQLite database (Week 3) — so data survives a server restart.
+
+## Why SQLite
+
+SQLite was chosen because it's a single file with zero setup — no separate database server to install or run. It's perfect for a small project like this: the whole database is just `tasks.db`, created automatically the first time the app runs.
+
+## Where the database lives
+
+The database file `tasks.db` is created automatically in the project folder the first time you run the app. It is git-ignored, so every fresh clone starts with a brand new, empty-then-seeded database rather than inheriting anyone else's data.
 
 ## How to run it
 
@@ -27,6 +35,8 @@ A small REST API that lets you create, read, update, and delete tasks. Data is s
    uvicorn main:app --reload
 ```
 5. Visit `http://localhost:8000` in your browser, or `http://localhost:8000/docs` for Swagger UI.
+
+On first run, `tasks.db` is created automatically with the `tasks` table and 3 seeded example tasks.
 
 ## Endpoints
 
@@ -58,6 +68,23 @@ Interactive docs are available at `/docs`. Example of a successful `POST /tasks`
 ![Swagger UI screenshot](screenshots/post.png)
 ![Swagger UI screenshot](screenshots/post2.png)
 
+## Exploring the database directly
+
+Opened `tasks.db` in DB Browser for SQLite and ran:
+
+```sql
+SELECT * FROM tasks WHERE done = 1;
+```
+
+This returned 1 row — task id 6, "Walk the dog" — demonstrating that filtering by status happens inside the database itself, rather than in a loop in the application code.
+
+![DB Browser screenshot](screenshots/Screenshot%202026-07-29%20022928.png)
+![DB Browser screenshot](screenshots/Screenshot%202026-07-29%20022632.png)
+
+## Persistence
+
+Unlike the original in-memory version, tasks now survive a server restart because they're stored in `tasks.db` on disk rather than in a variable in memory. Restarting the server, running `GET /tasks`, and seeing previously created tasks still present is the proof.
+
 ## Notes
 
-This project uses in-memory storage — all tasks reset when the server restarts. Persistent storage with a database is planned for Week 3.
+All CRUD operations use parameterized SQL queries (`?` placeholders) rather than gluing user input directly into SQL strings, to keep the database safe from injection.
